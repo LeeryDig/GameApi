@@ -1,6 +1,7 @@
 using GameApi.Services;
 using GameApi.Utils;
 using Microsoft.EntityFrameworkCore;
+using Project.Models;
 using User.Models;
 
 namespace GameApi.Services
@@ -8,10 +9,12 @@ namespace GameApi.Services
     public class UserServices : IUserServices
     {
         private readonly UserContext _context;
+        private readonly IProjectService _projectServices;
 
-        public UserServices(UserContext context)
+        public UserServices(UserContext context, IProjectService projectService)
         {
             _context = context;
+            _projectServices = projectService;
         }
 
         public async Task<IEnumerable<UserModel>> GetAllUser()
@@ -96,7 +99,7 @@ namespace GameApi.Services
             return (_context.UserModels?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
-        public async Task<UserModel> UpdateUserLevel(long userId, long projectId, float timeTaken, int difficulty)
+        public async Task<UserModel> UpdateUserLevel(long userId, long projectId, float timeTaken)
         {
             var existingUser = await _context.UserModels.FindAsync(userId);
 
@@ -105,9 +108,10 @@ namespace GameApi.Services
                 throw new KeyNotFoundException($"User with ID {userId} was not found.");
             }
 
+            ProjectDto project = await _projectServices.GetProjectDtoById(projectId);
 
-
-            int levingUp = LevingUp.CalculateLevelUp(projectId, timeTaken, 1);
+            int levingUp = LevingUp.CalculateLevelUp(project.TimeRequired, timeTaken, project.Difficulty);
+            existingUser.Level = levingUp;
 
             await _context.SaveChangesAsync();
             return existingUser;

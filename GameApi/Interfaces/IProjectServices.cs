@@ -6,6 +6,7 @@ namespace GameApi.Services
     {
         Task<IEnumerable<ProjectModel>> GetAllProject();
         Task<IEnumerable<ProjectModel>> GetProjectById(long id);
+        Task<ProjectDto> GetProjectDtoById(long id);
         Task<ProjectModel> CreateProject(ProjectDto projectDto);
         Task<long> UpdateProjectById(long id, ProjectDto projectDto);
         Task<long> DeleteProjectById(long id);

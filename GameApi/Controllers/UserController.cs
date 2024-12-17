@@ -91,11 +91,11 @@ namespace GameApi.Controllers
         }
 
         [HttpPut("Level")]
-        public async Task<IActionResult> PutUserLevel(long id, long projectId, float timeTaken, int difficulty)
+        public async Task<IActionResult> PutUserLevel(long userId, long projectId, float timeTaken)
         {
             try
             {
-                var result = await _services.UpdateUserLevel(id, projectId, timeTaken, difficulty);
+                var result = await _services.UpdateUserLevel(userId, projectId, timeTaken);
                 return base.CreatedAtAction(nameof(GetUserModels), result);
             }
             catch (InvalidOperationException ex)

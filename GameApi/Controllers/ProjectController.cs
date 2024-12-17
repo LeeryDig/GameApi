@@ -52,7 +52,7 @@ namespace GameApi.Controllers
             try
             {
                 var result = await _services.UpdateProjectById(id, projectModel);
-                return base.CreatedAtAction(nameof(GetProjectModel), result);
+                return base.CreatedAtAction(nameof(GetProjectModels), result);
             }
             catch (InvalidOperationException ex)
             {
@@ -67,7 +67,7 @@ namespace GameApi.Controllers
             try
             {
                 var createProject = await _services.CreateProject(projectModel);
-                return CreatedAtAction(nameof(GetProjectModel), createProject);
+                return CreatedAtAction(nameof(GetProjectModels), createProject);
             }
             catch (InvalidOperationException ex)
             {
@@ -82,7 +82,7 @@ namespace GameApi.Controllers
             try
             {
                 var user = await _services.DeleteProjectById(id);
-                return CreatedAtAction(nameof(GetProjectModel), user);
+                return CreatedAtAction(nameof(GetProjectModels), user);
             }
             catch (InvalidOperationException ex)
             {

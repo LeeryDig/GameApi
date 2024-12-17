@@ -72,6 +72,25 @@ namespace GameApi.Services
             return await _context.ProjectModels.ToListAsync();
         }
 
+        public async Task<ProjectDto> GetProjectDtoById(long id)
+        {
+            var projectModel = await _context.ProjectModels.FindAsync(id);
+
+            if (projectModel == null)
+            {
+                throw new KeyNotFoundException($"User with ID {id} was not found.");
+            }
+
+            ProjectDto projectDto = new ProjectDto
+            {
+                Name = projectModel.Name,
+                TimeRequired = projectModel.TimeRequired,
+                Difficulty = projectModel.Difficulty
+            };
+
+            return projectDto;
+        }
+
         public async Task<long> UpdateProjectById(long id, ProjectDto projectDto)
         {
             var existingUser = await _context.ProjectModels.FindAsync(id);
