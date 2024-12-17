@@ -6,8 +6,14 @@ using GameApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddEnvironmentVariables();
 
-builder.Services.AddControllers();
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection("MongoDbSettings"));
 
 builder.Services.AddDbContext<UserContext>(opt =>
     opt.UseInMemoryDatabase("UserList"));
@@ -22,6 +28,19 @@ builder.Services.AddScoped<ILevelService, LevelService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
+// {
+//     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+//     return new MongoClient(settings.ConnectionString);
+// });
+
+// builder.Services.AddScoped<IMongoDatabase>(sp =>
+// {
+//     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+//     var client = sp.GetRequiredService<IMongoClient>();
+//     return client.GetDatabase(settings.DatabaseName);
+// });
 
 var app = builder.Build();
 
