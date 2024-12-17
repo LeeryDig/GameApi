@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "GAhLnrfEzsyyJ1rbRHCf+DGYvyDAcqsox+RWxDJ8srML/AaFMhhaU+xw+BUCTSIAj8mQ8p31pJZ9W/urJXDnDw==",
+  "dgSpecHash": "nwfQ1e2PGjEqnfGdwCiGllreGn070m9XUgto1xfjAkgUtZbGeYzCvvOhhszQCaxjjTRGfES65eOi16u05zXPiQ==",
   "success": true,
-  "projectFilePath": "G:\\Projetos\\DotNetCore\\GameApi\\GameApi.csproj",
+  "projectFilePath": "G:\\Projetos\\GameApi\\GameApi\\GameApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\guiga\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\guiga\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
