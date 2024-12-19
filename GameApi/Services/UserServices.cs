@@ -1,120 +1,81 @@
 using GameApi.Services;
 using GameApi.Utils;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using Project.Models;
 using User.Models;
+using MongoDB.Driver;
 
 namespace GameApi.Services
 {
     public class UserServices : IUserServices
     {
-        private readonly UserContext _context;
+        // private readonly UserContext _context;
+        private readonly IMongoCollection<UserModel> _context;
         private readonly IProjectService _projectServices;
 
-        public UserServices(UserContext context, IProjectService projectService)
+        public UserServices(MongoDbContext context, IProjectService projectService)
         {
-            _context = context;
+            _context = context.Users;
             _projectServices = projectService;
         }
 
-        public async Task<IEnumerable<UserModel>> GetAllUser()
+        public async Task<List<UserModel>> GetAllUser()
         {
-            if (_context.UserModels == null)
-            {
-                return Enumerable.Empty<UserModel>();
-            }
-
-            return await _context.UserModels.ToListAsync();
+            return await _context.Find(user => true).ToListAsync();
         }
 
-        public async Task<IEnumerable<UserModel>> GetUserById(long id)
+        public async Task<UserModel> GetUserById(long id)
         {
-            if (_context.UserModels == null)
-            {
-                return Enumerable.Empty<UserModel>();
-            }
-            var userModel = await _context.UserModels.FindAsync(id);
-
-            if (userModel == null)
-            {
-                return Enumerable.Empty<UserModel>();
-            }
-
-            return await _context.UserModels.ToListAsync();
+            return await _context.Find(user => user.Id == id).FirstOrDefaultAsync();
         }
 
         public async Task<UserModel> CreateUser(UserDto user)
         {
             var userModel = new UserModel
             {
-                Name = user.Name,
                 Username = user.Username,
                 Password = user.Password,
                 Level = 0,
                 LevelId = 0
             };
-            _context.UserModels.Add(userModel);
-            await _context.SaveChangesAsync();
+            await _context.InsertOneAsync(userModel);
 
             return userModel;
         }
 
-        public async Task<long> UpdateUserById(long id, UserDto user)
-        {
-            var existingUser = await _context.UserModels.FindAsync(id);
+        // public async Task<long> UpdateUserById(long id, UserDto user)
+        // {
+        //     await _context.ReplaceOneAsync(u => u.Id == id, user);
+        //     return id;
+        // }
 
-            if (existingUser == null)
-            {
-                throw new KeyNotFoundException($"User with ID {id} was not found.");
-            }
+        // public async Task<long> DeleteUserById(long id)
+        // {
+        //     await _context.DeleteOneAsync(u => u.Id == id);
+        //     return id;
+        // }
 
-            existingUser.Name = user.Name;
-            existingUser.Username = user.Username;
-            existingUser.Password = user.Password;
+        // private bool UserModelExists(long id)
+        // {
+        //     return (_context.UserModels?.Any(e => e.Id == id)).GetValueOrDefault();
+        // }
 
-            await _context.SaveChangesAsync();
-            return id;
-        }
+        // public async Task<UserModel> UpdateUserLevel(long userId, long projectId, float timeTaken)
+        // {
+        //     var existingUser = await _context.UserModels.FindAsync(userId);
 
-        public async Task<long> DeleteUserById(long id)
-        {
-            if (_context.UserModels == null)
-            {
-                throw new KeyNotFoundException($"User with ID {id} was not found.");
-            }
-            var userModel = await _context.UserModels.FindAsync(id);
-            if (userModel == null)
-            {
-                throw new KeyNotFoundException($"User Not Found.");
-            }
+        //     if (existingUser == null)
+        //     {
+        //         throw new KeyNotFoundException($"User with ID {userId} was not found.");
+        //     }
 
-            _context.UserModels.Remove(userModel);
-            await _context.SaveChangesAsync();
+        //     ProjectDto project = await _projectServices.GetProjectDtoById(projectId);
 
-            return id;
-        }
+        //     int levingUp = LevingUp.CalculateLevelUp(project.TimeRequired, timeTaken, project.Difficulty);
+        //     existingUser.Level = levingUp;
 
-        private bool UserModelExists(long id)
-        {
-            return (_context.UserModels?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
-
-        public async Task<UserModel> UpdateUserLevel(long userId, long projectId, float timeTaken)
-        {
-            var existingUser = await _context.UserModels.FindAsync(userId);
-
-            if (existingUser == null)
-            {
-                throw new KeyNotFoundException($"User with ID {userId} was not found.");
-            }
-
-            ProjectDto project = await _projectServices.GetProjectDtoById(projectId);
-
-            int levingUp = LevingUp.CalculateLevelUp(project.TimeRequired, timeTaken, project.Difficulty);
-            existingUser.Level = levingUp;
-
-            await _context.SaveChangesAsync();
-            return existingUser;
-        }
+        //     await _context.SaveChangesAsync();
+        //     return existingUser;
+        // }
     }
 }

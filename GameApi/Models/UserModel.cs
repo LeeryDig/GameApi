@@ -4,10 +4,7 @@ namespace User.Models;
 
 public class UserModel
 {
-    [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; }
-    public required string Name { get; set; }
+    public long Id { get; set; }
     public int Level { get; set; }
     public long LevelId { get; set; }
     public required string Username { get; set; }
@@ -16,7 +13,6 @@ public class UserModel
 
 public class UserDto
 {
-    public required string Name { get; set; }
     public required string Username { get; set; }
     public required string Password { get; set; }
 }

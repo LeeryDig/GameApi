@@ -3,48 +3,35 @@ using Level.Models;
 using Project.Models;
 using User.Models;
 using GameApi.Services;
+using MongoDB.Driver;
+using MongoDB.Bson;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddEnvironmentVariables();
+builder.Services.AddAuthorization(); 
+builder.Services.AddControllers();
 
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddEnvironmentVariables();
+string mongoConnectionString = "mongodb+srv://<user>:<pass>@gamedb.9gyot.mongodb.net/?retryWrites=true&w=majority&appName=GameDb";
 
-builder.Services.Configure<MongoDbSettings>(
-    builder.Configuration.GetSection("MongoDbSettings"));
+builder.Services.AddSingleton<IMongoClient, MongoClient>(_ => new MongoClient(mongoConnectionString));
 
-builder.Services.AddDbContext<UserContext>(opt =>
-    opt.UseInMemoryDatabase("UserList"));
+// builder.Services.AddDbContext<UserContext>(opt =>
+//     opt.UseInMemoryDatabase("UserList"));
 builder.Services.AddDbContext<ProjectContext>(opt =>
     opt.UseInMemoryDatabase("ProjectList"));
 builder.Services.AddDbContext<LevelContext>(opt =>
     opt.UseInMemoryDatabase("LevelList"));
 
-builder.Services.AddScoped<IProjectService, ProjectServices>();
+builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IUserServices, UserServices>();
+builder.Services.AddScoped<IProjectService, ProjectServices>();
 builder.Services.AddScoped<ILevelService, LevelService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
-// {
-//     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
-//     return new MongoClient(settings.ConnectionString);
-// });
-
-// builder.Services.AddScoped<IMongoDatabase>(sp =>
-// {
-//     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
-//     var client = sp.GetRequiredService<IMongoClient>();
-//     return client.GetDatabase(settings.DatabaseName);
-// });
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
