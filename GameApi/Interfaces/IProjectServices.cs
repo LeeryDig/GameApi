@@ -4,11 +4,10 @@ namespace GameApi.Services
 {
     public interface IProjectService
     {
-        Task<IEnumerable<ProjectModel>> GetAllProject();
-        Task<IEnumerable<ProjectModel>> GetProjectById(long id);
-        Task<ProjectDto> GetProjectDtoById(long id);
+        Task<List<ProjectModel>> GetAllProject();
+        Task<ProjectModel> GetProjectById(string id);
         Task<ProjectModel> CreateProject(ProjectDto projectDto);
-        Task<long> UpdateProjectById(long id, ProjectDto projectDto);
-        Task<long> DeleteProjectById(long id);
+        Task<ProjectModel> UpdateProjectById(string id, ProjectDto projectDto);
+        Task<string> DeleteProjectById(string id);
     }
 }

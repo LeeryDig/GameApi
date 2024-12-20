@@ -1,16 +1,16 @@
-using GameApi.Services;
 using Microsoft.EntityFrameworkCore;
 using Project.Models;
+using MongoDB.Driver;
 
 namespace GameApi.Services
 {
     public class ProjectServices : IProjectService
     {
-        private readonly ProjectContext _context;
+        private readonly IMongoCollection<ProjectModel> _context;
 
-        public ProjectServices(ProjectContext context)
+        public ProjectServices(MongoDbContext context)
         {
-            _context = context;
+            _context = context.Projects;
         }
 
         public async Task<ProjectModel> CreateProject(ProjectDto projectDto)
@@ -18,99 +18,46 @@ namespace GameApi.Services
             var projectModel = new ProjectModel
             {
                 Name = projectDto.Name,
+                Description = projectDto.Description,
                 TimeRequired = projectDto.TimeRequired,
                 Difficulty = projectDto.Difficulty,
                 IsComplete = false,
             };
-            _context.ProjectModels.Add(projectModel);
-            await _context.SaveChangesAsync();
+            await _context.InsertOneAsync(projectModel);
 
             return projectModel;
         }
 
-        public async Task<long> DeleteProjectById(long id)
+        public async Task<string> DeleteProjectById(string id)
         {
-            if (_context.ProjectModels == null)
-            {
-                throw new KeyNotFoundException($"User with ID {id} was not found.");
-            }
-            var userModel = await _context.ProjectModels.FindAsync(id);
-            if (userModel == null)
-            {
-                throw new KeyNotFoundException($"User Not Found.");
-            }
-
-            _context.ProjectModels.Remove(userModel);
-            await _context.SaveChangesAsync();
-
+            await _context.DeleteOneAsync(u => u.Id == id);
             return id;
         }
 
-        public async Task<IEnumerable<ProjectModel>> GetAllProject()
+        public async Task<List<ProjectModel>> GetAllProject()
         {
-            if (_context.ProjectModels == null)
-            {
-                return Enumerable.Empty<ProjectModel>();
-            }
-
-            return await _context.ProjectModels.ToListAsync();
+            return await _context.Find(user => true).ToListAsync();
         }
 
-        public async Task<IEnumerable<ProjectModel>> GetProjectById(long id)
+        public async Task<ProjectModel> GetProjectById(string id)
         {
-            if (_context.ProjectModels == null)
-            {
-                return Enumerable.Empty<ProjectModel>();
-            }
-            var projectModel = await _context.ProjectModels.FindAsync(id);
-
-            if (projectModel == null)
-            {
-                return Enumerable.Empty<ProjectModel>();
-            }
-
-            return await _context.ProjectModels.ToListAsync();
+            return await _context.Find(project => project.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<ProjectDto> GetProjectDtoById(long id)
+        public async Task<ProjectModel> UpdateProjectById(string id, ProjectDto projectDto)
         {
-            var projectModel = await _context.ProjectModels.FindAsync(id);
+            var filter = Builders<ProjectModel>.Filter.Eq(p => p.Id, id);
 
-            if (projectModel == null)
+            var updatedProject= new ProjectModel
             {
-                throw new KeyNotFoundException($"User with ID {id} was not found.");
-            }
-
-            ProjectDto projectDto = new ProjectDto
-            {
-                Name = projectModel.Name,
-                TimeRequired = projectModel.TimeRequired,
-                Difficulty = projectModel.Difficulty
+                Id = id,
+                Name = projectDto.Name,
+                Description = projectDto.Description,
+                Difficulty = projectDto.Difficulty,
+                TimeRequired = projectDto.TimeRequired
             };
-
-            return projectDto;
-        }
-
-        public async Task<long> UpdateProjectById(long id, ProjectDto projectDto)
-        {
-            var existingUser = await _context.ProjectModels.FindAsync(id);
-
-            if (existingUser == null)
-            {
-                throw new KeyNotFoundException($"User with ID {id} was not found.");
-            }
-
-            existingUser.Name = projectDto.Name;
-            existingUser.TimeRequired = projectDto.TimeRequired;
-            existingUser.Difficulty = projectDto.Difficulty;
-
-            await _context.SaveChangesAsync();
-            return id;
-        }
-
-        private bool ProjectModelExists(long id)
-        {
-            return (_context.ProjectModels?.Any(e => e.Id == id)).GetValueOrDefault();
+            await _context.ReplaceOneAsync(filter, updatedProject);
+            return updatedProject;
         }
     }
 }

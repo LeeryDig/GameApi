@@ -5,10 +5,9 @@ namespace GameApi.Services
     public interface IUserServices
     {
         Task<List<UserModel>> GetAllUser();
-        Task<UserModel> GetUserById(long id);
-        Task<UserModel> CreateUser(UserDto userModel);
-        // Task<long> UpdateUserById(long id, UserDto userModel);
-        // Task<UserModel> UpdateUserLevel(long userId, long projectId, float timeTaken);
-        // Task<long> DeleteUserById(long id);
+        Task<UserModel> GetUserById(string id);
+        Task<UserModel> CreateUser(UserDto userDto);
+        Task<UserModel> UpdateUserById(string id, UserDto userDto);
+        Task<string> DeleteUserById(string id);
     }
 }

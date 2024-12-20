@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GameApi.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using User.Models;
 using MongoDB.Driver;
 
@@ -26,43 +20,57 @@ namespace GameApi.Controllers
 
         // GET: api/User
         [HttpGet]
-        public async Task<ActionResult<List<UserModel>>> GetUserModels()
+        public async Task<ActionResult<List<UserModel>>> GetAllUsers()
         {
-            var users = await _services.GetAllUser();
-            return Ok(users);
+            try
+            {
+                var users = await _services.GetAllUser();
+                return Ok(users);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         // GET: api/User/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserModel>> GetUserModel(long id)
+        public async Task<ActionResult<UserModel>> GetUserById(string id)
         {
-            var users = await _services.GetUserById(id);
-            return Ok(users);
+            try
+            {
+                var users = await _services.GetUserById(id);
+                return Ok(users);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         // PUT: api/User/5
-        // [HttpPut("{id}")]
-        // public async Task<IActionResult> PutUserModel(long id, UserDto user)
-        // {
-        //     try
-        //     {
-        //         var result = await _services.UpdateUserById(id, user);
-        //         return base.CreatedAtAction(nameof(GetUserModels), result);
-        //     }
-        //     catch (InvalidOperationException ex)
-        //     {
-        //         return StatusCode(500, ex.Message);
-        //     }
-        // }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUserById(string id, UserDto user)
+        {
+            try
+            {
+                var result = await _services.UpdateUserById(id, user);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         // POST: api/User
         [HttpPost]
-        public async Task<ActionResult<UserModel>> PostUserModel(UserDto user)
+        public async Task<ActionResult<UserModel>> CreateUser(UserDto user)
         {
             try
             {
                 var createdUser = await _services.CreateUser(user);
-                return CreatedAtAction(nameof(GetUserModels), createdUser);
+                return Ok(createdUser);
             }
             catch (InvalidOperationException ex)
             {
@@ -71,32 +79,18 @@ namespace GameApi.Controllers
         }
 
         // DELETE: api/User/5
-        // [HttpDelete("{id}")]
-        // public async Task<IActionResult> DeleteUserModel(long id)
-        // {
-        //     try
-        //     {
-        //         var user = await _services.DeleteUserById(id);
-        //         return CreatedAtAction(nameof(GetUserModels), user);
-        //     }
-        //     catch (InvalidOperationException ex)
-        //     {
-        //         return StatusCode(500, ex.Message);
-        //     }
-        // }
-
-        // [HttpPut("Level")]
-        // public async Task<IActionResult> PutUserLevel(long userId, long projectId, float timeTaken)
-        // {
-        //     try
-        //     {
-        //         var result = await _services.UpdateUserLevel(userId, projectId, timeTaken);
-        //         return base.CreatedAtAction(nameof(GetUserModels), result);
-        //     }
-        //     catch (InvalidOperationException ex)
-        //     {
-        //         return StatusCode(500, ex.Message);
-        //     }
-        // }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            try
+            {
+                var user = await _services.DeleteUserById(id);
+                return Ok(user);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

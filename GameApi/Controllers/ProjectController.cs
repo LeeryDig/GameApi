@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GameApi.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using Project.Models;
 
 namespace GameApi.Controllers
@@ -14,45 +9,53 @@ namespace GameApi.Controllers
     [ApiController]
     public class ProjectController : ControllerBase
     {
-        private readonly ProjectContext _context;
+        private readonly IMongoCollection<ProjectModel> _context;
         private readonly IProjectService _services;
 
-        public ProjectController(ProjectContext context, IProjectService services)
+        public ProjectController(MongoDbContext context, IProjectService services)
         {
-            _context = context;
+            _context = context.Projects;
             _services = services;
         }
 
         // GET: api/Project
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProjectModel>>> GetProjectModels()
+        public async Task<ActionResult<IEnumerable<ProjectModel>>> GetAllProjects()
         {
-            var users = await _services.GetAllProject();
-            return Ok(users);
+            try
+            {
+                var projects = await _services.GetAllProject();
+                return Ok(projects);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         // GET: api/Project/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProjectModel>> GetProjectModel(long id)
+        public async Task<ActionResult<ProjectModel>> GetProjectById(string id)
         {
-            var users = await _services.GetProjectById(id);
-
-            if (!users.Any())
+            try
             {
-                return NotFound();
+                var project = await _services.GetProjectById(id);
+                return Ok(project);
             }
-
-            return Ok(users);
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         // PUT: api/Project/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProjectModel(long id, ProjectDto projectModel)
+        public async Task<IActionResult> UpdateProjectById(string id, ProjectDto projectModel)
         {
             try
             {
-                var result = await _services.UpdateProjectById(id, projectModel);
-                return base.CreatedAtAction(nameof(GetProjectModels), result);
+                var project = await _services.UpdateProjectById(id, projectModel);
+                return Ok(project);
             }
             catch (InvalidOperationException ex)
             {
@@ -62,12 +65,12 @@ namespace GameApi.Controllers
 
         // POST: api/Project
         [HttpPost]
-        public async Task<ActionResult<ProjectModel>> PostProjectModel(ProjectDto projectModel)
+        public async Task<ActionResult<ProjectModel>> CreateProject(ProjectDto projectModel)
         {
             try
             {
-                var createProject = await _services.CreateProject(projectModel);
-                return CreatedAtAction(nameof(GetProjectModels), createProject);
+                var project = await _services.CreateProject(projectModel);
+                return Ok(project);
             }
             catch (InvalidOperationException ex)
             {
@@ -77,12 +80,12 @@ namespace GameApi.Controllers
 
         // DELETE: api/Project/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProjectModel(long id)
+        public async Task<IActionResult> DeleteProjectById(string id)
         {
             try
             {
-                var user = await _services.DeleteProjectById(id);
-                return CreatedAtAction(nameof(GetProjectModels), user);
+                var result = await _services.DeleteProjectById(id);
+                return Ok(result);
             }
             catch (InvalidOperationException ex)
             {

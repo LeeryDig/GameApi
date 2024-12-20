@@ -1,4 +1,6 @@
+using Level.Models;
 using MongoDB.Driver;
+using Project.Models;
 using User.Models;
 
 public class MongoDbContext
@@ -11,4 +13,6 @@ public class MongoDbContext
     }
 
     public IMongoCollection<UserModel> Users => _database.GetCollection<UserModel>("Users");
+    public IMongoCollection<ProjectModel> Projects => _database.GetCollection<ProjectModel>("Projects");
+    public IMongoCollection<LevelModel> Levels => _database.GetCollection<LevelModel>("Levels");
 }

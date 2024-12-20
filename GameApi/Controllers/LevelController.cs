@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Level.Models;
+using GameApi.Services;
+using MongoDB.Driver;
 
 namespace GameApi.Controllers
 {
@@ -13,111 +10,89 @@ namespace GameApi.Controllers
     [ApiController]
     public class LevelController : ControllerBase
     {
-        private readonly LevelContext _context;
+        private readonly IMongoCollection<LevelModel> _context;
+        private readonly ILevelService _services;
 
-        public LevelController(LevelContext context)
+        public LevelController(MongoDbContext context, ILevelService services)
         {
-            _context = context;
+            _context = context.Levels;
+            _services = services;
+
         }
 
         // GET: api/Level
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LevelModel>>> GetLevelModels()
+        public async Task<ActionResult<List<LevelModel>>> GetAllLevels()
         {
-            if (_context.LevelModels == null)
+            try
             {
-                return NotFound();
+                var users = await _services.GetAllLevels();
+                return Ok(users);
             }
-            return await _context.LevelModels.ToListAsync();
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         // GET: api/Level/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<LevelModel>> GetLevelModel(long id)
+        public async Task<ActionResult<LevelModel>> GetLevelById(string id)
         {
-            if (_context.LevelModels == null)
+            try
             {
-                return NotFound();
+                var users = await _services.GetLevelById(id);
+                return Ok(users);
             }
-            var levelModel = await _context.LevelModels.FindAsync(id);
-
-            if (levelModel == null)
+            catch (InvalidOperationException ex)
             {
-                return NotFound();
+                return StatusCode(500, ex.Message);
             }
-
-            return levelModel;
         }
 
         // PUT: api/Level/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutLevelModel(long id, LevelModel levelModel)
+        public async Task<IActionResult> UpdateLevelById(string id, LevelDto levelModel)
         {
-            if (id != levelModel.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(levelModel).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var result = await _services.UpdateLevelById(id, levelModel);
+                return Ok(result);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (InvalidOperationException ex)
             {
-                if (!LevelModelExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(500, ex.Message);
             }
-
-            return NoContent();
         }
 
         // POST: api/Level
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<LevelModel>> PostLevelModel(LevelModel levelModel)
+        public async Task<ActionResult<LevelModel>> CreateLevel(LevelDto level)
         {
-            if (_context.LevelModels == null)
+            try
             {
-                return Problem("Entity set 'LevelContext.LevelModels'  is null.");
+                var createdLevel = await _services.CreateLevel(level);
+                return Ok(createdLevel);
             }
-            _context.LevelModels.Add(levelModel);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetLevelModel", new { id = levelModel.Id }, levelModel);
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         // DELETE: api/Level/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteLevelModel(long id)
+        public async Task<IActionResult> DeleteLevelById(string id)
         {
-            if (_context.LevelModels == null)
+            try
             {
-                return NotFound();
+                var level = await _services.DeleteLevelById(id);
+                return Ok(level);
             }
-            var levelModel = await _context.LevelModels.FindAsync(id);
-            if (levelModel == null)
+            catch (InvalidOperationException ex)
             {
-                return NotFound();
+                return StatusCode(500, ex.Message);
             }
-
-            _context.LevelModels.Remove(levelModel);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool LevelModelExists(long id)
-        {
-            return (_context.LevelModels?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }
